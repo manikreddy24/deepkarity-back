@@ -1,34 +1,29 @@
 const initializeDatabase = require('./sqlite');
 let db;
 
-function getDatabase() {
+async function getDatabase() {
   if (!db) {
-    db = initializeDatabase();
+    db = await initializeDatabase();
   }
   return db;
 }
 
 module.exports = {
-  query: (text, params) => {
-    const database = getDatabase();
-    if (text.trim().toUpperCase().startsWith('SELECT')) {
-      return params ? database.prepare(text).all(params) : database.prepare(text).all();
-    } else {
-      const result = params ? database.prepare(text).run(params) : database.prepare(text).run();
-      return { rows: [], rowCount: result.changes, lastID: result.lastInsertRowid };
-    }
+  query: async (text, params) => {
+    const database = await getDatabase();
+    return database.all(text, params);
   },
-  get: (text, params) => {
-    const database = getDatabase();
-    return params ? database.prepare(text).get(params) : database.prepare(text).get();
+  get: async (text, params) => {
+    const database = await getDatabase();
+    return database.get(text, params);
   },
-  all: (text, params) => {
-    const database = getDatabase();
-    return params ? database.prepare(text).all(params) : database.prepare(text).all();
+  all: async (text, params) => {
+    const database = await getDatabase();
+    return database.all(text, params);
   },
-  run: (text, params) => {
-    const database = getDatabase();
-    const result = params ? database.prepare(text).run(params) : database.prepare(text).run();
-    return { lastID: result.lastInsertRowid, changes: result.changes };
+  run: async (text, params) => {
+    const database = await getDatabase();
+    const result = await database.run(text, params);
+    return { lastID: result.lastID, changes: result.changes };
   }
 };
