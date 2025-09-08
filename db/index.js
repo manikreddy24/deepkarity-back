@@ -1,29 +1,29 @@
-const initializeDatabase = require('./sqlite');
-let db;
+const FileDb = require('./fileDb');
+let dbInstance;
 
 async function getDatabase() {
-  if (!db) {
-    db = await initializeDatabase();
+  if (!dbInstance) {
+    dbInstance = new FileDb();
+    await dbInstance.init();
   }
-  return db;
+  return dbInstance;
 }
 
 module.exports = {
   query: async (text, params) => {
-    const database = await getDatabase();
-    return database.all(text, params);
+    const db = await getDatabase();
+    return db.all(text, params);
   },
   get: async (text, params) => {
-    const database = await getDatabase();
-    return database.get(text, params);
+    const db = await getDatabase();
+    return db.get(text, params);
   },
   all: async (text, params) => {
-    const database = await getDatabase();
-    return database.all(text, params);
+    const db = await getDatabase();
+    return db.all(text, params);
   },
   run: async (text, params) => {
-    const database = await getDatabase();
-    const result = await database.run(text, params);
-    return { lastID: result.lastID, changes: result.changes };
+    const db = await getDatabase();
+    return db.run(text, params);
   }
 };
