@@ -1,18 +1,18 @@
-const sqlite3 = require('sqlite3').verbose();
-const { open } = require('sqlite');
+const Database = require('better-sqlite3');
 const path = require('path');
 
-async function initializeDatabase() {
+function initializeDatabase() {
   try {
-    const dbPath = path.join(__dirname, '..', 'resume_analyzer.db');
+    const dbPath = process.env.NODE_ENV === 'production' 
+      ? '/tmp/resume_analyzer.db'  // Use /tmp directory in production
+      : path.join(__dirname, '..', 'resume_analyzer.db');
     
-    const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
-
-    // Create the resumes table
-    await db.exec(`
+    console.log('📊 Database path:', dbPath);
+    
+    const db = new Database(dbPath);
+    
+    // Create the resumes table if it doesn't exist
+    db.exec(`
       CREATE TABLE IF NOT EXISTS resumes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         file_name TEXT NOT NULL,
@@ -33,6 +33,12 @@ async function initializeDatabase() {
         improvement_areas TEXT,
         upskill_suggestions TEXT
       )
+    `);
+
+    // Create indexes for better performance
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_resumes_email ON resumes(email);
+      CREATE INDEX IF NOT EXISTS idx_resumes_uploaded_at ON resumes(uploaded_at);
     `);
 
     console.log('✅ SQLite database initialized successfully');

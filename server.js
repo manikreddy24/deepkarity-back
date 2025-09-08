@@ -4,20 +4,23 @@ const fs = require('fs');
 const path = require('path');
 
 // MANUAL ENVIRONMENT VARIABLE LOADING - MUST BE FIRST!
-const envPath = path.join(__dirname, '.env');
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  envContent.split('\n').forEach(line => {
-    const [key, value] = line.split('=');
-    if (key && value) {
-      process.env[key.trim()] = value.trim();
-    }
-  });
-  console.log('✅ Manually loaded environment variables');
-  console.log('GOOGLE_API_KEY:', process.env.GOOGLE_API_KEY ? 'Present' : 'Missing');
-} else {
-  console.log('ℹ️  No .env file found');
+// Only load .env file in development
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const [key, value] = line.split('=');
+      if (key && value) {
+        process.env[key.trim()] = value.trim();
+      }
+    });
+    console.log('✅ Manually loaded environment variables');
+  }
 }
+
+console.log('🔑 GOOGLE_API_KEY available:', !!process.env.GOOGLE_API_KEY);
+console.log('🌐 NODE_ENV:', process.env.NODE_ENV || 'development');
 
 // NOW import other modules that need environment variables
 const resumeRoutes = require('./routes/resumeRoute');
@@ -37,6 +40,7 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Resume Analyzer API is running',
+    environment: process.env.NODE_ENV || 'development',
     gemini_configured: !!process.env.GOOGLE_API_KEY
   });
 });
@@ -48,6 +52,7 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Gemini API configured: ${!!process.env.GOOGLE_API_KEY}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🤖 Gemini API configured: ${!!process.env.GOOGLE_API_KEY}`);
+  console.log(`💾 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

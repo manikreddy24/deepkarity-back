@@ -1,34 +1,6 @@
 const db = require('../db');
 const { extractTextFromPDF, analyzeResumeWithGemini } = require('../services/analaysisService');
 
-async function deleteResume(req, res) {
-  try {
-    const { id } = req.params;
-    
-    // First check if the resume exists
-    const checkQuery = 'SELECT * FROM resumes WHERE id = ?';
-    const existingResume = await db.get(checkQuery, [id]);
-    
-    if (!existingResume) {
-      return res.status(404).json({ error: 'Resume not found' });
-    }
-    
-    // Delete the resume
-    const deleteQuery = 'DELETE FROM resumes WHERE id = ?';
-    await db.run(deleteQuery, [id]);
-    
-    console.log(`✅ Resume with ID ${id} deleted successfully`);
-    res.json({ 
-      success: true, 
-      message: 'Resume deleted successfully',
-      deletedId: id
-    });
-  } catch (error) {
-    console.error('Error deleting resume:', error);
-    res.status(500).json({ error: error.message });
-  }
-}
-
 async function uploadResume(req, res) {
   try {
     console.log('Upload resume request received');
@@ -124,9 +96,35 @@ async function getResumeById(req, res) {
   }
 }
 
+async function deleteResume(req, res) {
+  try {
+    const { id } = req.params;
+    
+    // First check if the resume exists
+    const existingResume = await db.get('SELECT * FROM resumes WHERE id = ?', [id]);
+    
+    if (!existingResume) {
+      return res.status(404).json({ error: 'Resume not found' });
+    }
+    
+    // Delete the resume
+    await db.run('DELETE FROM resumes WHERE id = ?', [id]);
+    
+    console.log(`✅ Resume with ID ${id} deleted successfully`);
+    res.json({ 
+      success: true, 
+      message: 'Resume deleted successfully',
+      deletedId: id
+    });
+  } catch (error) {
+    console.error('Error deleting resume:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   uploadResume,
   getAllResumes,
   getResumeById,
-  deleteResume 
+  deleteResume
 };
