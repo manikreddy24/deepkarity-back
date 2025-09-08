@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:13-alpine  # Smaller, more reliable image
+    environment:
+      POSTGRES_DB: resume_analyzer
+      POSTGRES_USER: resume_user
+      POSTGRES_PASSWORD: secure_password_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
